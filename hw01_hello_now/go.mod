@@ -1,4 +1,4 @@
-module github.com/ansirenko/hw01_hello_now
+module github.com/ansirenko/otus_hw/hw01_hello_now
 
 go 1.14
 
