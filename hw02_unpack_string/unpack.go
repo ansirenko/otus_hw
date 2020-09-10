@@ -10,48 +10,73 @@ import (
 // ErrInvalidString is Unpack error that happened when string is incorrect.
 var ErrInvalidString = errors.New("invalid string")
 
+func checkForCorrect(str string) error {
+	isDigit := false
+	isNumber := false
+	for i := 0; i < len(str); i++ {
+		if str[i] == '\\' {
+			isNumber = false
+			i++
+			continue
+		}
+		isDigit = unicode.IsDigit(rune(str[i]))
+		if isDigit && isNumber {
+			return ErrInvalidString
+		}
+		isNumber = isDigit
+		if isDigit && i == 0 {
+			return ErrInvalidString
+		}
+	}
+	return nil
+}
+
+func isRepeat(val rune) (count int, err error) {
+	if !unicode.IsDigit(val) {
+		return -1, nil
+	}
+	digit, err := strconv.Atoi(string(val))
+	if err != nil {
+		return 0, err
+	}
+	return digit, nil
+}
+
 // Unpack is function for unpack string.
 func Unpack(str string) (string, error) {
 	if str == "" {
 		return "", nil
 	}
-
-	var response strings.Builder
-
-	isSafe := false
-	isNumber := false
-	for index, val := range str {
-		if val == '\\' && !isSafe {
-			isSafe = true
-			isNumber = false
+	if err := checkForCorrect(str); err != nil {
+		return "", err
+	}
+	var resp strings.Builder
+	input := []rune(str)
+	for i := 0; i < len(input); i++ {
+		if str[i] == '\\' {
+			i++
+			resp.WriteRune(input[i])
 			continue
 		}
-		if unicode.IsDigit(val) && !isSafe {
-			if index == 0 {
-				return "", ErrInvalidString
-			}
-			if isNumber {
-				return "", ErrInvalidString
-			}
-			isNumber = true
-
-			digit, err := strconv.Atoi(string(val))
-			if err != nil {
-				return "", err
-			}
-			if digit == 0 {
-				buf := response.String()[:response.Len()-1]
-				response.Reset()
-				response.WriteString(buf)
+		count, err := isRepeat(input[i])
+		if err != nil {
+			return "", err
+		}
+		switch count {
+		case 0:
+			{
+				buf := resp.String()[:resp.Len()-1]
+				resp.Reset()
+				resp.WriteString(buf)
 				continue
 			}
-			response.WriteString(strings.Repeat(string(str[index-1]), digit-1))
-		} else {
-			response.WriteRune(val)
-			isNumber = false
-			isSafe = false
+		case -1:
+			{
+				resp.WriteRune(input[i])
+			}
+		default:
+			resp.WriteString(strings.Repeat(string(input[i-1]), count-1))
 		}
 	}
-
-	return response.String(), nil
+	return resp.String(), nil
 }
