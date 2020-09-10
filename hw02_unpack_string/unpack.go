@@ -1,4 +1,4 @@
-package hw02_unpack_string //nolint:golint,stylecheck,nestif
+package hw02_unpack_string //nolint:golint,stylecheck
 
 import (
 	"errors"
@@ -21,18 +21,20 @@ func Unpack(str string) (string, error) {
 	var previousLetter rune
 
 	for i := 0; i < len(str); i++ {
-		if str[i] == '\\' {
+		currentLetter := rune(str[i])
+		if currentLetter == '\\' {
 			i++
 			if i == len(str) {
 				return "", ErrInvalidString
 			}
-			resp.WriteRune(rune(str[i]))
-			previousLetter = rune(str[i])
+			currentLetter = rune(str[i])
+			resp.WriteRune(currentLetter)
+			previousLetter = currentLetter
 			isDigit = false
 			continue
 		}
-		currentLetter := rune(str[i])
-		if unicode.IsDigit(currentLetter) {
+		isCurrentLetterDigit := unicode.IsDigit(currentLetter)
+		if isCurrentLetterDigit {
 			if i == 0 {
 				return "", ErrInvalidString
 			}
