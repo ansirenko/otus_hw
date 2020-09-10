@@ -16,18 +16,20 @@ func Unpack(str string) (string, error) {
 		return "", nil
 	}
 
+	input := []rune(str)
+
 	isDigit := false
 	var resp strings.Builder
 	var previousLetter rune
 
-	for i := 0; i < len(str); i++ {
-		currentLetter := rune(str[i])
+	for i := 0; i < len(input); i++ {
+		currentLetter := input[i]
 		if currentLetter == '\\' {
 			i++
-			if i == len(str) {
+			if i == len(input) {
 				return "", ErrInvalidString
 			}
-			currentLetter = rune(str[i])
+			currentLetter = input[i]
 			resp.WriteRune(currentLetter)
 			previousLetter = currentLetter
 			isDigit = false
