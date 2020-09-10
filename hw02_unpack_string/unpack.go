@@ -16,12 +16,11 @@ func Unpack(str string) (string, error) {
 		return "", nil
 	}
 
-	input := []rune(str)
 	var response strings.Builder
 
 	isSafe := false
 	isNumber := false
-	for index, val := range input {
+	for index, val := range str {
 		if val == '\\' && !isSafe {
 			isSafe = true
 			isNumber = false
@@ -46,8 +45,7 @@ func Unpack(str string) (string, error) {
 				response.WriteString(buf)
 				continue
 			}
-			response.WriteString(strings.Repeat(string(input[index-1]), digit-1))
-
+			response.WriteString(strings.Repeat(string(str[index-1]), digit-1))
 		} else {
 			response.WriteRune(val)
 			isNumber = false
