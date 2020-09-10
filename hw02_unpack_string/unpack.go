@@ -31,7 +31,8 @@ func Unpack(str string) (string, error) {
 			isDigit = false
 			continue
 		}
-		if unicode.IsDigit(rune(str[i])) {
+		currentLetter := rune(str[i])
+		if unicode.IsDigit(currentLetter) {
 			if i == 0 {
 				return "", ErrInvalidString
 			}
@@ -40,7 +41,7 @@ func Unpack(str string) (string, error) {
 			}
 			isDigit = true
 
-			digit, err := strconv.Atoi(string(str[i]))
+			digit, err := strconv.Atoi(string(currentLetter))
 			if err != nil {
 				return "", err
 			}
@@ -52,8 +53,8 @@ func Unpack(str string) (string, error) {
 			}
 			resp.WriteString(strings.Repeat(string(previousLetter), digit-1))
 		} else {
-			resp.WriteRune(rune(str[i]))
-			previousLetter = rune(str[i])
+			resp.WriteRune(currentLetter)
+			previousLetter = currentLetter
 
 			isDigit = false
 		}
