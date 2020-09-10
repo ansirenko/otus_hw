@@ -29,7 +29,9 @@ func Unpack(str string) (string, error) {
 			resp.WriteRune(rune(str[i]))
 			previousLetter = rune(str[i])
 			isDigit = false
-		} else if unicode.IsDigit(rune(str[i])) {
+			continue
+		}
+		if unicode.IsDigit(rune(str[i])) {
 			if i == 0 {
 				return "", ErrInvalidString
 			}
