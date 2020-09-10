@@ -17,52 +17,43 @@ func Unpack(str string) (string, error) {
 	}
 
 	input := []rune(str)
+	var response strings.Builder
 
-	isDigit := false
-	var resp strings.Builder
-	var previousLetter rune
-
-	for i := 0; i < len(input); i++ {
-		currentLetter := input[i]
-		if currentLetter == '\\' {
-			i++
-			if i == len(input) {
-				return "", ErrInvalidString
-			}
-			currentLetter = input[i]
-			resp.WriteRune(currentLetter)
-			previousLetter = currentLetter
-			isDigit = false
+	isSafe := false
+	isNumber := false
+	for index, val := range input {
+		if val == '\\' && !isSafe {
+			isSafe = true
+			isNumber = false
 			continue
 		}
-		isCurrentLetterDigit := unicode.IsDigit(currentLetter)
-		if isCurrentLetterDigit {
-			if i == 0 {
+		if unicode.IsDigit(val) && !isSafe {
+			if index == 0 {
 				return "", ErrInvalidString
 			}
-			if isDigit {
+			if isNumber {
 				return "", ErrInvalidString
 			}
-			isDigit = true
+			isNumber = true
 
-			digit, err := strconv.Atoi(string(currentLetter))
+			digit, err := strconv.Atoi(string(val))
 			if err != nil {
 				return "", err
 			}
 			if digit == 0 {
-				buf := resp.String()[:resp.Len()-1]
-				resp.Reset()
-				resp.WriteString(buf)
+				buf := response.String()[:response.Len()-1]
+				response.Reset()
+				response.WriteString(buf)
 				continue
 			}
-			resp.WriteString(strings.Repeat(string(previousLetter), digit-1))
-		} else {
-			resp.WriteRune(currentLetter)
-			previousLetter = currentLetter
+			response.WriteString(strings.Repeat(string(input[index-1]), digit-1))
 
-			isDigit = false
+		} else {
+			response.WriteRune(val)
+			isNumber = false
+			isSafe = false
 		}
 	}
 
-	return resp.String(), nil
+	return response.String(), nil
 }
