@@ -7,10 +7,10 @@ import (
 	"unicode"
 )
 
-// ErrInvalidString is Unpack error that happened when string is incorrect
+// ErrInvalidString is Unpack error that happened when string is incorrect.
 var ErrInvalidString = errors.New("invalid string")
 
-// Unpack is function for unpack string
+// Unpack is function for unpack string.
 func Unpack(str string) (string, error) {
 	if str == "" {
 		return "", nil
@@ -43,12 +43,12 @@ func Unpack(str string) (string, error) {
 				return "", err
 			}
 			if digit == 0 {
-				buf := resp.String()[:resp.Len() - 1]
+				buf := resp.String()[:resp.Len()-1]
 				resp.Reset()
 				resp.WriteString(buf)
 				continue
 			}
-			resp.WriteString(strings.Repeat(string(previousLetter), digit - 1))
+			resp.WriteString(strings.Repeat(string(previousLetter), digit-1))
 		} else {
 			resp.WriteRune(rune(str[i]))
 			previousLetter = rune(str[i])
