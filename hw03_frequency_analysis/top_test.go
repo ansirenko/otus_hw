@@ -1,13 +1,14 @@
 package hw03_frequency_analysis //nolint:golint
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 )
 
 // Change to true if needed
-var taskWithAsteriskIsCompleted = false
+var taskWithAsteriskIsCompleted = true
 
 var text = `Как видите, он  спускается  по  лестнице  вслед  за  своим
 	другом   Кристофером   Робином,   головой   вниз,  пересчитывая
@@ -51,10 +52,52 @@ func TestTop10(t *testing.T) {
 	t.Run("positive test", func(t *testing.T) {
 		if taskWithAsteriskIsCompleted {
 			expected := []string{"он", "а", "и", "что", "ты", "не", "если", "то", "его", "кристофер", "робин", "в"}
-			require.Subset(t, expected, Top10(text))
+			top := Top10(text)
+			require.Len(t, top, 10)
+			require.Subset(t, expected, top)
 		} else {
 			expected := []string{"он", "и", "а", "что", "ты", "не", "если", "-", "то", "Кристофер"}
 			require.ElementsMatch(t, expected, Top10(text))
+		}
+	})
+
+	t.Run("less then 10 words in text", func(t *testing.T) {
+		input := "Тестовый текст из небольшого количества слов."
+		expectedCount := 6
+		require.Len(t, Top10(input), expectedCount)
+	})
+
+	t.Run("different types of one word", func(t *testing.T) {
+		input := "Тест тест тест, ,тест тест-тест ТеСт тест: \nтест\n" //ожидается 7 слов тест
+		noiseWords := []string{"один", "два", "три", "четыре", "пять", "шесть", "семь", "восемь", "девять", "десять"}
+		for _, word := range noiseWords {
+			strings.Repeat(" "+word+" ", 6)
+			input += " " + word
+		}
+		require.Equal(t, "тест", Top10(input)[0])
+	})
+
+	t.Run("correct order of Top10 answer", func(t *testing.T) {
+		input := ""
+		var words = map[string]int{
+			"один":   1,
+			"два":    2,
+			"три":    3,
+			"четыре": 4,
+			"пять":   5,
+			"шесть":  6,
+			"семь":   7,
+			"восемь": 8,
+			"девять": 9,
+			"десять": 10,
+		}
+		for word, count := range words {
+			input += strings.Repeat(" "+word+" ", count)
+		}
+		response := Top10(input)
+		require.Len(t, response, len(words))
+		for word, count := range words {
+			require.Equal(t, word, response[10-count])
 		}
 	})
 }
