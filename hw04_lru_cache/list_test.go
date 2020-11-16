@@ -76,7 +76,7 @@ func TestList(t *testing.T) {
 		require.Equal(t, listItem, l.Back())
 	})
 
-	t.Run("Len()", func(t *testing.T) {
+	t.Run("len", func(t *testing.T) {
 		l := NewList()
 
 		require.Zero(t, l.Len())
@@ -103,7 +103,7 @@ func TestList(t *testing.T) {
 		require.Zero(t, l.Len())
 	})
 
-	t.Run("Run()", func(t *testing.T) {
+	t.Run("run", func(t *testing.T) {
 		l := NewList()
 
 		val := l.Front()
@@ -126,7 +126,7 @@ func TestList(t *testing.T) {
 		require.Equal(t, item2, val)
 	})
 
-	t.Run("Back()", func(t *testing.T) {
+	t.Run("back", func(t *testing.T) {
 		l := NewList()
 
 		val := l.Back()
@@ -153,7 +153,7 @@ func TestList(t *testing.T) {
 		require.Equal(t, item, val)
 	})
 
-	t.Run("PushFront()", func(t *testing.T) {
+	t.Run("push front", func(t *testing.T) {
 		l := NewList()
 
 		item := l.PushFront(0)
@@ -171,7 +171,7 @@ func TestList(t *testing.T) {
 		require.Equal(t, item, next)
 	})
 
-	t.Run("PushBack()", func(t *testing.T) {
+	t.Run("push back", func(t *testing.T) {
 		l := NewList()
 
 		item := l.PushBack(0)
@@ -189,7 +189,7 @@ func TestList(t *testing.T) {
 		require.Equal(t, item, prev)
 	})
 
-	t.Run("Remove()", func(t *testing.T) {
+	t.Run("remove", func(t *testing.T) {
 		l := NewList()
 
 		item := l.PushFront(0)
@@ -215,7 +215,7 @@ func TestList(t *testing.T) {
 		require.Equal(t, items[0], next)
 	})
 
-	t.Run("MoveToFront()", func(t *testing.T) {
+	t.Run("move to front", func(t *testing.T) {
 		l := NewList()
 
 		item := l.PushFront(0)
