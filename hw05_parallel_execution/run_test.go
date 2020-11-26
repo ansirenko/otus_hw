@@ -63,7 +63,7 @@ func TestRun(t *testing.T) {
 		elapsedTime := time.Since(start)
 		require.Nil(t, result)
 
-		require.Equal(t, runTasksCount, int32(tasksCount), "not all tasks were completed")
+		require.Equal(t, int32(tasksCount), runTasksCount, "not all tasks were completed")
 		require.LessOrEqual(t, int64(elapsedTime), int64(sumTime/2), "tasks were run sequentially?")
 	})
 }
