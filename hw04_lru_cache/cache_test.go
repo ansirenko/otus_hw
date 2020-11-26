@@ -1,11 +1,12 @@
 package hw04_lru_cache //nolint:golint,stylecheck
 
 import (
-	"github.com/stretchr/testify/require"
 	"math/rand"
 	"strconv"
 	"sync"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestCache(t *testing.T) {
@@ -52,7 +53,7 @@ func TestCache(t *testing.T) {
 		capacity := 4
 		c := NewCache(capacity)
 
-		for i := capacity; i >=0; i-- {
+		for i := capacity; i >= 0; i-- {
 			c.Set(Key(strconv.Itoa(i)), i) //4 [3, 2, 1, 0]
 		}
 		for i := 0; i < capacity; i++ {

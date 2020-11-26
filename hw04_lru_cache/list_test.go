@@ -90,14 +90,14 @@ func TestList(t *testing.T) {
 		for i := 0; i < int(count); i++ {
 			l.PushBack(i)
 		}
-		require.EqualValues(t, count * 2, l.Len())
+		require.EqualValues(t, count*2, l.Len())
 
-		for i := 0; i < int(count * 2); i++ {
+		for i := 0; i < int(count*2); i++ {
 			l.MoveToFront(l.Back())
 		}
-		require.EqualValues(t, count * 2, l.Len())
+		require.EqualValues(t, count*2, l.Len())
 
-		for i := 0; i < int(count * 2); i++ {
+		for i := 0; i < int(count*2); i++ {
 			l.Remove(l.Front())
 		}
 		require.Zero(t, l.Len())
@@ -208,7 +208,7 @@ func TestList(t *testing.T) {
 		}
 		l.Remove(items[1])
 		length = l.Len()
-		require.Equal(t, len(items) - 1, length)
+		require.Equal(t, len(items)-1, length)
 		prev := items[0].Prev
 		require.Equal(t, items[2], prev)
 		next := items[2].Next

@@ -10,14 +10,14 @@ type Cache interface {
 }
 
 type lruCache struct {
-	mu sync.Mutex
+	mu       sync.Mutex
 	capacity int
-	queue List
-	items map[Key]*ListItem
+	queue    List
+	items    map[Key]*ListItem
 }
 
 type cacheItem struct {
-	key Key
+	key   Key
 	value interface{}
 }
 

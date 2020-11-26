@@ -19,7 +19,7 @@ type ListItem struct {
 type list struct {
 	count int
 	first *ListItem
-	last *ListItem
+	last  *ListItem
 }
 
 func (l *list) Len() int {
