@@ -2,7 +2,6 @@ package hw05_parallel_execution //nolint:golint,stylecheck
 
 import (
 	"errors"
-	"fmt"
 	"sync"
 )
 
@@ -10,7 +9,7 @@ var ErrErrorsLimitExceeded = errors.New("errors limit exceeded")
 
 type Task func() error
 
-func worker(doneCh <-chan interface{}, workCh <-chan Task, errCh chan error){
+func worker(doneCh <-chan interface{}, workCh <-chan Task, errCh chan error) {
 	for task := range workCh {
 		select {
 		case <-doneCh:
@@ -24,41 +23,19 @@ func worker(doneCh <-chan interface{}, workCh <-chan Task, errCh chan error){
 	}
 }
 
-func interrupter(errCh <-chan error, doneCh chan interface{}, terminate chan error, M int) {
-	for {
-		select {
-		case err, ok := <-errCh:
-			if !ok {
-				return
-			}
-			if err != nil {
-				fmt.Println("We got error: %w", err)
-				M--
-				if M <= 0 {
-					fmt.Println("TERMINATE!!")
-					terminate <- fmt.Errorf("lalalala")
-					return
-				}
-			}
-		case <-doneCh:
-			return
-		}
-
+// Run starts tasks in N goroutines and stops its work when receiving M errors from tasks.
+func Run(tasks []Task, n int, m int) error {
+	if n <= 0 {
+		return nil // Started without workers.
 	}
-}
 
-// Run starts tasks in N goroutines and stops its work when receiving M errors from tasks
-func Run(tasks []Task, N int, M int) error {
 	errCh := make(chan error, len(tasks))
 	doneCh := make(chan interface{})
-	//terminate := make(chan error)
 
-	//go interrupter(errCh, doneCh, terminate, M)
-
-	t := make(chan Task, N)
+	t := make(chan Task, n)
 
 	wg := sync.WaitGroup{}
-	for i := 0; i < N; i++ {
+	for i := 0; i < n; i++ {
 		wg.Add(1)
 		go func() {
 			worker(doneCh, t, errCh)
@@ -73,7 +50,7 @@ func Run(tasks []Task, N int, M int) error {
 	for _, tsk := range tasks {
 		t <- tsk
 
-		if len(errCh) >= M {
+		if len(errCh) >= m && m > 0 {
 			close(doneCh)
 			return ErrErrorsLimitExceeded
 		}
