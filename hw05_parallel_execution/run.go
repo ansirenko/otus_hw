@@ -2,6 +2,7 @@ package hw05_parallel_execution //nolint:golint,stylecheck
 
 import (
 	"errors"
+	"fmt"
 	"sync"
 )
 
@@ -9,15 +10,24 @@ var ErrErrorsLimitExceeded = errors.New("errors limit exceeded")
 
 type Task func() error
 
-func worker(doneCh <-chan interface{}, workCh <-chan Task, errCh chan error) {
-	for task := range workCh {
+type worker struct {
+	muErr    sync.Mutex
+	errCount int
+}
+
+func (w *worker) work(doneCh <-chan interface{}, workCh <-chan Task) {
+	for {
 		select {
 		case <-doneCh:
 			return
-		default:
-			err := task()
-			if err != nil {
-				errCh <- err
+		case task, ok := <-workCh:
+			if !ok {
+				return
+			}
+			if err := task(); err != nil {
+				w.muErr.Lock()
+				w.errCount++
+				w.muErr.Unlock()
 			}
 		}
 	}
@@ -26,36 +36,36 @@ func worker(doneCh <-chan interface{}, workCh <-chan Task, errCh chan error) {
 // Run starts tasks in N goroutines and stops its work when receiving M errors from tasks.
 func Run(tasks []Task, n int, m int) error {
 	if n <= 0 {
-		return nil // Started without workers.
+		return fmt.Errorf("workers count must be greater than 0") // Started without workers.
 	}
 
-	errCh := make(chan error, len(tasks))
 	doneCh := make(chan interface{})
+	taskCh := make(chan Task)
 
-	t := make(chan Task, n)
+	taskRunner := worker{}
 
 	wg := sync.WaitGroup{}
 	for i := 0; i < n; i++ {
 		wg.Add(1)
 		go func() {
-			worker(doneCh, t, errCh)
+			taskRunner.work(doneCh, taskCh)
 			wg.Done()
 		}()
 	}
+	defer wg.Wait()
 
-	defer func() {
-		wg.Wait()
-	}()
-
-	for _, tsk := range tasks {
-		t <- tsk
-
-		if len(errCh) >= m && m > 0 {
+	for _, task := range tasks {
+		taskCh <- task
+		if m <= 0 {
+			continue
+		}
+		if taskRunner.errCount >= m {
 			close(doneCh)
+			close(taskCh)
 			return ErrErrorsLimitExceeded
 		}
 	}
-	close(t)
+	close(taskCh)
 
 	return nil
 }

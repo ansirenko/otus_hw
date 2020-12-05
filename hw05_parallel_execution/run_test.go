@@ -105,10 +105,7 @@ func TestRun(t *testing.T) {
 			tasks = append(tasks, func() error {
 				time.Sleep(taskSleep)
 				atomic.AddInt32(&runTasksCount, 1)
-				if i % 2 == 0 {
-					return err
-				}
-				return nil
+				return err
 			})
 		}
 
@@ -116,7 +113,7 @@ func TestRun(t *testing.T) {
 		maxErrorsCount := 0
 
 		result := Run(tasks, workersCount, maxErrorsCount)
-		require.Nil(t, result)
+		require.NoError(t, result)
 
 		require.Equal(t, int32(tasksCount), runTasksCount, "not all tasks were completed")
 	})
@@ -151,6 +148,6 @@ func TestRun(t *testing.T) {
 		maxErrorsCount := 0
 
 		result := Run(tasks, workersCount, maxErrorsCount)
-		require.Nil(t, result)
+		require.Error(t, result)
 	})
 }
