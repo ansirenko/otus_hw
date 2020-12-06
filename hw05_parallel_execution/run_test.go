@@ -63,7 +63,91 @@ func TestRun(t *testing.T) {
 		elapsedTime := time.Since(start)
 		require.Nil(t, result)
 
-		require.Equal(t, runTasksCount, int32(tasksCount), "not all tasks were completed")
+		require.Equal(t, int32(tasksCount), runTasksCount, "not all tasks were completed")
 		require.LessOrEqual(t, int64(elapsedTime), int64(sumTime/2), "tasks were run sequentially?")
+	})
+
+	t.Run("start less tasks than count of workers", func(t *testing.T) {
+		tasksCount := 20
+		tasks := make([]Task, 0, tasksCount)
+
+		var runTasksCount int32
+
+		for i := 0; i < tasksCount; i++ {
+			taskSleep := time.Millisecond * time.Duration(rand.Intn(100))
+
+			tasks = append(tasks, func() error {
+				time.Sleep(taskSleep)
+				atomic.AddInt32(&runTasksCount, 1)
+				return nil
+			})
+		}
+
+		workersCount := tasksCount+1
+		maxErrorsCount := 1
+
+		result := Run(tasks, workersCount, maxErrorsCount)
+		require.Nil(t, result)
+
+		require.Equal(t, int32(tasksCount), runTasksCount, "not all tasks were completed")
+	})
+
+	t.Run("don't return error and complete all tasks if max err count = 0", func(t *testing.T) {
+		tasksCount := 50
+		tasks := make([]Task, 0, tasksCount)
+
+		var runTasksCount int32
+
+		for i := 0; i < tasksCount; i++ {
+			taskSleep := time.Millisecond * time.Duration(rand.Intn(100))
+			err := fmt.Errorf("error from task %d", i)
+
+			tasks = append(tasks, func() error {
+				time.Sleep(taskSleep)
+				atomic.AddInt32(&runTasksCount, 1)
+				return err
+			})
+		}
+
+		workersCount := 10
+		maxErrorsCount := 0
+
+		result := Run(tasks, workersCount, maxErrorsCount)
+		require.NoError(t, result)
+
+		require.Equal(t, int32(tasksCount), runTasksCount, "not all tasks were completed")
+	})
+
+	t.Run("start without tasks", func(t *testing.T) {
+		tasks := make([]Task, 0, 0)
+
+		workersCount := 10
+		maxErrorsCount := 0
+
+		result := Run(tasks, workersCount, maxErrorsCount)
+		require.Nil(t, result)
+	})
+
+	t.Run("start without workers", func(t *testing.T) {
+		tasksCount := 50
+		tasks := make([]Task, 0, tasksCount)
+
+		var runTasksCount int32
+
+		for i := 0; i < tasksCount; i++ {
+			taskSleep := time.Millisecond * time.Duration(rand.Intn(100))
+
+			tasks = append(tasks, func() error {
+				time.Sleep(taskSleep)
+				atomic.AddInt32(&runTasksCount, 1)
+				return nil
+			})
+		}
+
+		workersCount := 0
+		maxErrorsCount := 0
+
+		result := Run(tasks, workersCount, maxErrorsCount)
+		require.Error(t, result)
 	})
 }
