@@ -9,14 +9,13 @@ type (
 type Stage func(in In) (out Out)
 
 func ExecutePipeline(in In, done In, stages ...Stage) Out {
-	if len(stages) == 1 {
+	if len(stages) == 1 && stages[0] == nil {
 		return in
 	}
-	out := in
 	for _, stage := range stages {
-		out = stage(terminator(done, out))
+		in = stage(terminator(done, in))
 	}
-	return out
+	return in
 }
 
 func terminator(done In, in In) Out {
@@ -31,7 +30,11 @@ func terminator(done In, in In) Out {
 				if !ok {
 					return
 				}
-				out <- i
+				select {
+				case <-done:
+					return
+				case out <- i:
+				}
 			}
 		}
 	}()

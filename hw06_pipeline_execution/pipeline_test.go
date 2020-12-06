@@ -103,11 +103,9 @@ func TestPipeline(t *testing.T) {
 		}()
 
 		result := make([]int, 0, 10)
-		//start := time.Now()
 		for s := range ExecutePipeline(in, nil, nil) {
 			result = append(result, s.(int))
 		}
-		//elapsed := time.Since(start)
 
 		require.Equal(t, data, result)
 	})
@@ -117,7 +115,6 @@ func TestPipeline(t *testing.T) {
 		done := make(Bi)
 		data := []int{1, 2, 3, 4, 5}
 
-		// Abort after 200ms
 		abortDur := sleepPerStage * time.Duration(len(stages)+1)
 		go func() {
 			<-time.After(abortDur)
