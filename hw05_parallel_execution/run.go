@@ -11,7 +11,7 @@ var ErrErrorsLimitExceeded = errors.New("errors limit exceeded")
 type Task func() error
 
 type worker struct {
-	muErr    sync.Mutex
+	sync.Mutex
 	errCount int
 }
 
@@ -25,9 +25,9 @@ func (w *worker) work(doneCh <-chan interface{}, workCh <-chan Task) {
 				return
 			}
 			if err := task(); err != nil {
-				w.muErr.Lock()
+				w.Lock()
 				w.errCount++
-				w.muErr.Unlock()
+				w.Unlock()
 			}
 		}
 	}
@@ -59,7 +59,10 @@ func Run(tasks []Task, n int, m int) error {
 		if m <= 0 {
 			continue
 		}
-		if taskRunner.errCount >= m {
+		taskRunner.Lock()
+		currentErrCounters := taskRunner.errCount
+		taskRunner.Unlock()
+		if currentErrCounters >= m {
 			close(doneCh)
 			close(taskCh)
 			return ErrErrorsLimitExceeded
