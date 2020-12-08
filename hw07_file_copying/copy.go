@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"os"
 )
@@ -12,7 +13,7 @@ var (
 	ErrIncorrectInputData    = errors.New("offset or limit is incorrect")
 )
 
-func Copy(fromPath string, toPath string, offset, limit int64) error {
+func Copy(fromPath, toPath string, offset, limit int64) error {
 	if fromPath == "" {
 		return ErrUnsupportedFile
 	}
@@ -23,7 +24,7 @@ func Copy(fromPath string, toPath string, offset, limit int64) error {
 
 	fileStat, err := os.Stat(fromPath)
 	if err != nil {
-		return err
+		return fmt.Errorf("can't get file stats: %w", err)
 	}
 
 	if !fileStat.Mode().IsRegular() {
@@ -36,19 +37,19 @@ func Copy(fromPath string, toPath string, offset, limit int64) error {
 
 	source, err := os.Open(fromPath)
 	if err != nil {
-		return err
+		return fmt.Errorf("can't open file: %w", err)
 	}
 	defer source.Close()
 
 	destination, err := os.Create(toPath)
 	if err != nil {
-		return err
+		return fmt.Errorf("can't create file: %w, ", err)
 	}
 	defer destination.Close()
 
 	_, err = source.Seek(offset, io.SeekStart)
 	if err != nil {
-		return err
+		return fmt.Errorf("can't use offset: %w", err)
 	}
 
 	readySize := fileStat.Size() - offset
@@ -73,12 +74,12 @@ func Copy(fromPath string, toPath string, offset, limit int64) error {
 	bar.Play()
 	for {
 		n, err := source.Read(buf)
-		if err != nil && err != io.EOF {
-			return err
+		if err != nil && !errors.Is(err, io.EOF) {
+			return fmt.Errorf("can't read file: %w", err)
 		}
 
 		if _, err := destination.Write(buf[:n]); err != nil {
-			return err
+			return fmt.Errorf("can't write to file: %w", err)
 		}
 
 		summ += n

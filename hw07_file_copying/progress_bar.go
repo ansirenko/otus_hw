@@ -43,7 +43,7 @@ func NewProgressBar(maxValue int) (*ProgressBar, error) {
 }
 
 const (
-	TIOCGWINSZ_OSX = 1074295912
+	TiocgwinszOsx = 1074295912
 )
 
 type window struct {
@@ -57,7 +57,7 @@ func (pb *ProgressBar) getCurrentTerminalWidth() (int, error) {
 	w := new(window)
 	tio := syscall.TIOCGWINSZ
 	if runtime.GOOS == "darwin" {
-		tio = TIOCGWINSZ_OSX
+		tio = TiocgwinszOsx
 	}
 	res, _, err := syscall.Syscall(syscall.SYS_IOCTL,
 		uintptr(syscall.Stdin),
@@ -91,7 +91,7 @@ func (pb *ProgressBar) Play() {
 				}
 
 				progress := strings.Repeat(pb.graph, doneRepeat)
-				clearer := strings.Repeat(" ", int(pb.barWidth+Indent))
+				clearer := strings.Repeat(" ", pb.barWidth+Indent)
 				fmt.Printf("\r%s\r", clearer)
 				fmt.Printf("\r[%-"+strconv.Itoa(pb.barWidth)+"s]%1d%% %2d/%d", progress, donePerc, cv, pb.maxValue)
 
