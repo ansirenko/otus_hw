@@ -4,17 +4,21 @@ import (
 	"errors"
 	"io"
 	"os"
-	"time"
 )
 
 var (
 	ErrUnsupportedFile       = errors.New("unsupported file")
 	ErrOffsetExceedsFileSize = errors.New("offset exceeds file size")
+	ErrIncorrectInputData    = errors.New("offset or limit is incorrect")
 )
 
 func Copy(fromPath string, toPath string, offset, limit int64) error {
 	if fromPath == "" {
 		return ErrUnsupportedFile
+	}
+
+	if offset < 0 || limit < 0 {
+		return ErrIncorrectInputData
 	}
 
 	fileStat, err := os.Stat(fromPath)
@@ -47,8 +51,8 @@ func Copy(fromPath string, toPath string, offset, limit int64) error {
 		return err
 	}
 
-	readySize := (fileStat.Size() - offset)
-	if readySize > limit && limit > 0{
+	readySize := fileStat.Size() - offset
+	if readySize > limit && limit > 0 {
 		readySize = limit
 	}
 
@@ -73,17 +77,11 @@ func Copy(fromPath string, toPath string, offset, limit int64) error {
 			return err
 		}
 
-		//limit -= int64(n)
-		//if limit <= 0 {
-		//	n -= int(limit)
-		//}
-
 		if _, err := destination.Write(buf[:n]); err != nil {
 			return err
 		}
 
 		summ += n
-		time.Sleep(100*time.Millisecond)
 
 		bar.currentValue <- summ
 		if int64(summ) == readySize {
@@ -93,4 +91,3 @@ func Copy(fromPath string, toPath string, offset, limit int64) error {
 
 	return nil
 }
-

@@ -2,20 +2,24 @@ package main
 
 import (
 	"fmt"
-	"os"
-	"os/exec"
+	"runtime"
 	"strconv"
 	"strings"
+	"syscall"
+	"unsafe"
 )
 
-const Indent = 20
+const (
+	Indent               = 20
+	DefaultTerminalWidth = 100
+)
 
 type ProgressBar struct {
-	graph string
-	barWidth int
+	graph        string
+	barWidth     int
 	currentValue chan int
-	maxValue int
-	doneCh chan interface{}
+	maxValue     int
+	doneCh       chan interface{}
 }
 
 func NewProgressBar(maxValue int) (*ProgressBar, error) {
@@ -28,6 +32,7 @@ func NewProgressBar(maxValue int) (*ProgressBar, error) {
 	pb.maxValue = maxValue
 
 	maxWidth, err := pb.getCurrentTerminalWidth()
+
 	if err != nil {
 		return nil, err
 	}
@@ -37,20 +42,35 @@ func NewProgressBar(maxValue int) (*ProgressBar, error) {
 	return pb, nil
 }
 
+const (
+	TIOCGWINSZ_OSX = 1074295912
+)
+
+type window struct {
+	Row    uint16
+	Col    uint16
+	Xpixel uint16
+	Ypixel uint16
+}
+
 func (pb *ProgressBar) getCurrentTerminalWidth() (int, error) {
-	cmd := exec.Command("stty", "size")
-	cmd.Stdin = os.Stdin
-	out, err := cmd.Output()
-	if err != nil {
+	w := new(window)
+	tio := syscall.TIOCGWINSZ
+	if runtime.GOOS == "darwin" {
+		tio = TIOCGWINSZ_OSX
+	}
+	res, _, err := syscall.Syscall(syscall.SYS_IOCTL,
+		uintptr(syscall.Stdin),
+		uintptr(tio),
+		uintptr(unsafe.Pointer(w)),
+	)
+	if err == syscall.ENOTTY {
+		return DefaultTerminalWidth, nil
+	}
+	if int(res) == -1 {
 		return 0, err
 	}
-	b := strings.ReplaceAll(string(out), "\n", "")
-	sizes := strings.Split(b, " ")
-	width, err := strconv.Atoi(sizes[1])
-	if err != nil {
-		return 0, err
-	}
-	return width, nil
+	return int(w.Col), nil
 }
 
 func (pb *ProgressBar) Play() {
@@ -71,7 +91,7 @@ func (pb *ProgressBar) Play() {
 				}
 
 				progress := strings.Repeat(pb.graph, doneRepeat)
-				clearer := strings.Repeat(" ", int(pb.barWidth + Indent))
+				clearer := strings.Repeat(" ", int(pb.barWidth+Indent))
 				fmt.Printf("\r%s\r", clearer)
 				fmt.Printf("\r[%-"+strconv.Itoa(pb.barWidth)+"s]%1d%% %2d/%d", progress, donePerc, cv, pb.maxValue)
 
