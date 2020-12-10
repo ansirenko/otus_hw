@@ -15,6 +15,7 @@ func TestCopy(t *testing.T) {
 	t.Run("simple copy", func(t *testing.T) {
 		resultFile, err := ioutil.TempFile("", "")
 		require.NoError(t, err, "can't create temporary file")
+		defer os.Remove(resultFile.Name())
 
 		err = Copy(sourceFile, resultFile.Name(), 0, 0)
 		require.NoError(t, err, "unexpected copy file error")
@@ -30,6 +31,7 @@ func TestCopy(t *testing.T) {
 	t.Run("copy with incorrect offset", func(t *testing.T) {
 		resultFile, err := ioutil.TempFile("", "")
 		require.NoError(t, err, "can't create temporary file")
+		defer os.Remove(resultFile.Name())
 
 		fileStat, err := os.Stat(sourceFile)
 		require.NoError(t, err, "can't get testing file stats")
@@ -41,6 +43,7 @@ func TestCopy(t *testing.T) {
 	t.Run("copy with incorrect limit", func(t *testing.T) {
 		resultFile, err := ioutil.TempFile("", "")
 		require.NoError(t, err, "can't create temporary file")
+		defer os.Remove(resultFile.Name())
 
 		err = Copy(sourceFile, resultFile.Name(), 0, -1)
 		require.Error(t, err, "run with incorrect limit")
@@ -49,6 +52,7 @@ func TestCopy(t *testing.T) {
 	t.Run("limit bigger than file size", func(t *testing.T) {
 		resultFile, err := ioutil.TempFile("", "")
 		require.NoError(t, err, "can't create temporary file")
+		defer os.Remove(resultFile.Name())
 
 		fileStat, err := os.Stat(sourceFile)
 		require.NoError(t, err, "can't get testing file stats")
@@ -67,6 +71,7 @@ func TestCopy(t *testing.T) {
 	t.Run("copy with offset", func(t *testing.T) {
 		resultFile, err := ioutil.TempFile("", "")
 		require.NoError(t, err, "can't create temporary file")
+		defer os.Remove(resultFile.Name())
 
 		err = Copy(sourceFile, resultFile.Name(), 100, 0)
 		require.NoError(t, err, "unexpected copy file error")
@@ -84,6 +89,7 @@ func TestCopy(t *testing.T) {
 	t.Run("copy with limit 10", func(t *testing.T) {
 		resultFile, err := ioutil.TempFile("", "")
 		require.NoError(t, err, "can't create temporary file")
+		defer os.Remove(resultFile.Name())
 
 		err = Copy(sourceFile, resultFile.Name(), 0, 10)
 		require.NoError(t, err, "unexpected copy file error")
@@ -101,6 +107,7 @@ func TestCopy(t *testing.T) {
 	t.Run("copy with limit 1000", func(t *testing.T) {
 		resultFile, err := ioutil.TempFile("", "")
 		require.NoError(t, err, "can't create temporary file")
+		defer os.Remove(resultFile.Name())
 
 		err = Copy(sourceFile, resultFile.Name(), 0, 1000)
 		require.NoError(t, err, "unexpected copy file error")
@@ -118,6 +125,7 @@ func TestCopy(t *testing.T) {
 	t.Run("copy with limit 10000", func(t *testing.T) {
 		resultFile, err := ioutil.TempFile("", "")
 		require.NoError(t, err, "can't create temporary file")
+		defer os.Remove(resultFile.Name())
 
 		err = Copy(sourceFile, resultFile.Name(), 0, 100000)
 		require.NoError(t, err, "unexpected copy file error")
@@ -135,6 +143,7 @@ func TestCopy(t *testing.T) {
 	t.Run("copy with offset 100 and limit 1000", func(t *testing.T) {
 		resultFile, err := ioutil.TempFile("", "")
 		require.NoError(t, err, "can't create temporary file")
+		defer os.Remove(resultFile.Name())
 
 		err = Copy(sourceFile, resultFile.Name(), 100, 1000)
 		require.NoError(t, err, "unexpected copy file error")
@@ -152,6 +161,7 @@ func TestCopy(t *testing.T) {
 	t.Run("copy with offset 6000 and limit 1000", func(t *testing.T) {
 		resultFile, err := ioutil.TempFile("", "")
 		require.NoError(t, err, "can't create temporary file")
+		defer os.Remove(resultFile.Name())
 
 		err = Copy(sourceFile, resultFile.Name(), 6000, 1000)
 		require.NoError(t, err, "unexpected copy file error")
@@ -169,6 +179,7 @@ func TestCopy(t *testing.T) {
 	t.Run("incorrect filename", func(t *testing.T) {
 		resultFile, err := ioutil.TempFile("", "")
 		require.NoError(t, err, "can't create temporary file")
+		defer os.Remove(resultFile.Name())
 
 		err = Copy("./testdata/non-existentFile", resultFile.Name(), 0, 0)
 		require.Error(t, err, "run with non existed file")
@@ -177,6 +188,7 @@ func TestCopy(t *testing.T) {
 	t.Run("unsupported filename", func(t *testing.T) {
 		resultFile, err := ioutil.TempFile("", "")
 		require.NoError(t, err, "can't create temporary file")
+		defer os.Remove(resultFile.Name())
 
 		err = Copy("/dev/urandom", resultFile.Name(), 0, 0)
 		require.Error(t, err, "run with non existed file")

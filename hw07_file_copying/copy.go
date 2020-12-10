@@ -13,46 +13,39 @@ var (
 	ErrIncorrectInputData    = errors.New("offset or limit is incorrect")
 )
 
-func Copy(fromPath, toPath string, offset, limit int64) error {
-	if fromPath == "" {
-		return ErrUnsupportedFile
-	}
-
-	if offset < 0 || limit < 0 {
-		return ErrIncorrectInputData
-	}
-
-	fileStat, err := os.Stat(fromPath)
+func prepareSources(from, to string, offset int64) (*os.File, *os.File, error) {
+	source, err := os.Open(from)
 	if err != nil {
-		return fmt.Errorf("can't get file stats: %w", err)
+		return nil, nil, fmt.Errorf("can't open file: %w", err)
 	}
 
-	if !fileStat.Mode().IsRegular() {
-		return ErrUnsupportedFile
-	}
-
-	if offset > fileStat.Size() {
-		return ErrOffsetExceedsFileSize
-	}
-
-	source, err := os.Open(fromPath)
+	destination, err := os.Create(to)
 	if err != nil {
-		return fmt.Errorf("can't open file: %w", err)
+		return nil, nil, fmt.Errorf("can't create file: %w, ", err)
 	}
-	defer source.Close()
-
-	destination, err := os.Create(toPath)
-	if err != nil {
-		return fmt.Errorf("can't create file: %w, ", err)
-	}
-	defer destination.Close()
 
 	_, err = source.Seek(offset, io.SeekStart)
 	if err != nil {
-		return fmt.Errorf("can't use offset: %w", err)
+		return nil, nil, fmt.Errorf("can't use offset: %w", err)
 	}
 
-	readySize := fileStat.Size() - offset
+	return source, destination, nil
+}
+
+func Copy(fromPath, toPath string, offset, limit int64) error {
+	fileSize, err := checkConditions(fromPath, offset, limit)
+	if err != nil {
+		return err
+	}
+
+	source, destination, err := prepareSources(fromPath, toPath, offset)
+	if err != nil {
+		return err
+	}
+	defer source.Close()
+	defer destination.Close()
+
+	readySize := fileSize - offset
 	if readySize > limit && limit > 0 {
 		readySize = limit
 	}
@@ -91,4 +84,29 @@ func Copy(fromPath, toPath string, offset, limit int64) error {
 	}
 
 	return nil
+}
+
+func checkConditions(from string, offset, limit int64) (int64, error) {
+	if from == "" {
+		return 0, ErrUnsupportedFile
+	}
+
+	if offset < 0 || limit < 0 {
+		return 0, ErrIncorrectInputData
+	}
+
+	fileStat, err := os.Stat(from)
+	if err != nil {
+		return 0, fmt.Errorf("can't get file stats: %w", err)
+	}
+
+	if !fileStat.Mode().IsRegular() {
+		return 0, ErrUnsupportedFile
+	}
+
+	if offset > fileStat.Size() {
+		return 0, ErrOffsetExceedsFileSize
+	}
+
+	return fileStat.Size(), nil
 }
